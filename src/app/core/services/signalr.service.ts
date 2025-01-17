@@ -24,11 +24,17 @@ export class SignalrService {
       this.hubConnection.start()
         .then(() => {
           if (this.hubConnection?.state === HubConnectionState.Connected) {
+
+            this.hubConnection.on("GetOldData", (model: Array<ISystemUsageDto>) => {
+              this.systemUsage.set(model);
+            });
+
             this.hubConnection.on("ReceiveSystemUsage", (model: ISystemUsageDto) => {
+              const maxReducDatapoints = 69;
               this.systemUsage.update(prev => {
                 const updatedValue = [...prev, model];
-                if (updatedValue.length > 10) {
-                  updatedValue.splice(0, updatedValue.length - 10);
+                if (updatedValue.length > maxReducDatapoints) {
+                  updatedValue.splice(0, updatedValue.length - maxReducDatapoints);
                 }
                 return updatedValue;
               });
@@ -42,7 +48,6 @@ export class SignalrService {
           if (error instanceof FailedToNegotiateWithServerError) {
             this.errorMessage.set(error.message);
           }
-          // this.startSignalRConnection();
         });
     }
   }

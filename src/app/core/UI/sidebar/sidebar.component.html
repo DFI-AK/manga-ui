@@ -1,0 +1,33 @@
+<header class="h-full border-r border-solid border-accent/25 transition-all duration-200 sticky left-0 top-0"
+    [ngClass]="{'w-72':!collapsed,'w-16':collapsed}">
+    <p class="text-3xl px-4 py-2 font-bold text-primary">
+        @if (collapsed) {
+        M
+        }@else {
+        Manga
+        }
+    </p>
+    <button (click)="collapsed=!collapsed" type="button" [ngClass]="{'rotate-180':collapsed,'rotate-0':!collapsed}"
+        class="absolute -right-3 z-[1] bottom-5 bg-primary text-base-100 rounded-full transition-transform duration-300">
+        <lucide-icon [name]="arrowIcon"></lucide-icon>
+    </button>
+    <nav class="w-full">
+        <ul class="px-2 py-4 text-sm">
+            <li class="mb-3 px-3 py-1.5 text-nowrap mx-auto w-full"
+                routerLinkActive="bg-primary text-base-100 font-semibold rounded-md"><a class="w-full"
+                    routerLink="/"><lucide-icon [name]="dashboardIcon" class="inline me-1" size="20"
+                        strokeWidth="1.5"></lucide-icon> <span [ngClass]="{'hidden':collapsed}">Dashboard</span></a>
+            </li>
+            <li class="mb-3 px-3 py-1.5 text-nowrap mx-auto w-full"
+                routerLinkActive="bg-primary text-base-100 font-semibold rounded-md"><a class="w-full block"
+                    routerLink="/sql-server"><lucide-icon [name]="windowsIcon" class="inline me-1" size="20"
+                        strokeWidth="1.5"></lucide-icon>
+                    <span [ngClass]="{'hidden':collapsed}">Windows</span></a></li>
+            <li class="mb-3 px-3 py-1.5 text-nowrap mx-auto w-full"
+                routerLinkActive="bg-primary text-base-100 font-semibold rounded-md"><a class="w-full block"
+                    routerLink="/windows"><lucide-icon [name]="sqlServerIcon" class="inline me-1" size="20"
+                        strokeWidth="1.5"></lucide-icon>
+                    <span [ngClass]="{'hidden':collapsed}">SQL Server</span></a></li>
+        </ul>
+    </nav>
+</header>
