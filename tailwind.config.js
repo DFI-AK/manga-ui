@@ -2,7 +2,11 @@
 module.exports = {
   content: ["./src/**/*.{html,ts}"],
   theme: {
-    extend: {},
+    extend: {
+      fontFamily: {
+        "poppins": ["Poppins"]
+      }
+    },
   },
   plugins: [require('daisyui')],
 }

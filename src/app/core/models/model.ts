@@ -7,3 +7,6 @@ export interface ISystemUsageDto {
     diskWriteBytes: number;
     timeStamp: string;
 }
+
+export type DiskUsageKeys = "read" | "write";
+export type NetworkTrafficKeys = "transmit" | "received";

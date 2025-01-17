@@ -26,7 +26,14 @@ export class SignalrService {
           if (this.hubConnection?.state === HubConnectionState.Connected) {
 
             this.hubConnection.on("GetOldData", (model: Array<ISystemUsageDto>) => {
-              this.systemUsage.set(model);
+              const maxReducDatapoints = 69;
+              this.systemUsage.update(prev => {
+                const updatedValue = [...prev, ...model];
+                if (updatedValue.length > maxReducDatapoints) {
+                  updatedValue.splice(0, updatedValue.length - maxReducDatapoints);
+                }
+                return updatedValue;
+              });
             });
 
             this.hubConnection.on("ReceiveSystemUsage", (model: ISystemUsageDto) => {
