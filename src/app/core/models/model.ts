@@ -8,5 +8,11 @@ export interface ISystemUsageDto {
     timeStamp: string;
 }
 
-export type DiskUsageKeys = "read" | "write";
-export type NetworkTrafficKeys = "transmit" | "received";
+export interface ISystemDetailDto {
+    machineName: string;
+    osVersion: string;
+    processorCount: number;
+    architecture: string;
+    totalMemoryKB: number;
+    freeMemoryKB: number;
+}

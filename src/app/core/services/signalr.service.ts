@@ -1,7 +1,7 @@
 import { Injectable, signal } from '@angular/core';
 import { HttpTransportType, HubConnection, HubConnectionBuilder, HubConnectionState, LogLevel } from "@microsoft/signalr";
 import { environment } from '../../../environments/environment';
-import { ISystemUsageDto } from '../models/model';
+import { ISystemDetailDto, ISystemUsageDto } from '../models/model';
 import { FailedToNegotiateWithServerError } from '@microsoft/signalr/dist/esm/Errors';
 
 @Injectable({
@@ -18,12 +18,17 @@ export class SignalrService {
   public systemUsage = signal<Array<ISystemUsageDto>>([]);
   public liveDataEnabled = signal<boolean>(false);
   public errorMessage = signal<string>('');
+  public systemDetails = signal<Partial<ISystemDetailDto>>({});
 
   startSignalRConnection(): void {
     if (this.hubConnection?.state === HubConnectionState.Disconnected) {
       this.hubConnection.start()
         .then(() => {
           if (this.hubConnection?.state === HubConnectionState.Connected) {
+
+            this.hubConnection.on("GetSystenDetails", model => {
+              this.systemDetails.set(model);
+            });
 
             this.hubConnection.on("GetOldData", (model: Array<ISystemUsageDto>) => {
               const maxReducDatapoints = 69;

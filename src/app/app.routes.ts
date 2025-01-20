@@ -2,5 +2,6 @@ import { Routes } from '@angular/router';
 import { HomeComponent } from './home/home.component';
 
 export const routes: Routes = [
-    { path: "", component: HomeComponent, title: "Dashboard | Manga" }
+    { path: "", component: HomeComponent, title: "Dashboard | Manga" },
+    { path: "", loadChildren: () => import('./core/modules/sql-server/sql-server.module').then(m => m.SqlServerModule) }
 ];

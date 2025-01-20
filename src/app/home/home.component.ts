@@ -1,11 +1,11 @@
 import { Component, effect, inject, OnDestroy, OnInit } from '@angular/core';
-import { DiskUsageKeys, ISystemUsageDto, NetworkTrafficKeys } from '../core/models/model';
 import { SignalrService } from '../core/services/signalr.service';
 import * as Highcharts from 'highcharts';
 import { HighchartsChartModule } from 'highcharts-angular';
 import { SidebarComponent } from "../core/UI/sidebar/sidebar.component";
 import { CommonModule } from '@angular/common';
-import moment from 'moment';
+import { ISystemDetailDto } from '../core/models/model';
+import { DataConversionPipe } from '../core/pipes/data-conversion.pipe';
 
 type SystemMetric = {
   cpuUsagePercentage: number;
@@ -19,10 +19,16 @@ type DiskUsage = {
   timeStamp: string;
 };
 
+type NetworkUsage = {
+  transmit: number,
+  received: number,
+  timeStamp: string;
+};
+
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [HighchartsChartModule, SidebarComponent, CommonModule],
+  imports: [HighchartsChartModule, SidebarComponent, CommonModule, DataConversionPipe],
   templateUrl: './home.component.html',
   styleUrl: './home.component.css'
 })
@@ -30,6 +36,7 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   private readonly signalRService = inject(SignalrService);
   private readonly systemUsage = inject(SignalrService).systemUsage;
+  public readonly systemDetails = inject(SignalrService).systemDetails;
   public Highcharts: typeof Highcharts = Highcharts;
 
   private chartTitles: Record<keyof SystemMetric, string> = {
@@ -39,6 +46,12 @@ export class HomeComponent implements OnInit, OnDestroy {
   };
 
   private diskUsageSeriesName: Record<keyof DiskUsage, string> = {
+    write: "Data write",
+    read: "Data read",
+    timeStamp: "Datetime"
+  };
+
+  private networkUsageSeriesName: Record<keyof DiskUsage, string> = {
     write: "Data write",
     read: "Data read",
     timeStamp: "Datetime"
@@ -54,8 +67,19 @@ export class HomeComponent implements OnInit, OnDestroy {
     "#7cb5ec", "#434348", "#90ed7d", "#f7a35c", "#8085e9", "#f15c80", "#e4d354", "#2b908f", "#f45b5b", "#91e8e1"
   ];
 
+  private readonly systemDetailColumns: Record<keyof ISystemDetailDto, string> = {
+    machineName: "Device name",
+    osVersion: "Operating System version",
+    architecture: "Architecture",
+    processorCount: "Logical processor",
+    totalMemoryKB: "Total memory",
+    freeMemoryKB: "Memory freed"
+  };
+
+  public readonly detailColumns = Object.entries(this.systemDetailColumns).map(([key, value]) => ({ key: key as keyof ISystemDetailDto, value: value }));
+
   public systemMetricOptions: Highcharts.Options[] = Object.entries(this.chartTitles)
-    .filter(([key, value]) => key !== 'timeStamp')
+    .filter(([key, _]) => key !== 'timeStamp')
     .map(([key, opt], idx) => ({
       chart: {
         type: "area",
@@ -114,10 +138,15 @@ export class HomeComponent implements OnInit, OnDestroy {
           enabled: false
         },
         min: 0,
-        max: 100
+        max: 100,
       },
       legend: {
         align: "left",
+        itemStyle: {
+          fontSize: "10px",
+          fontWeight: "500",
+          fontFamily: "Poppins"
+        }
       },
       credits: {
         enabled: false
@@ -167,20 +196,103 @@ export class HomeComponent implements OnInit, OnDestroy {
         style: {
           fontSize: "10px",
           fontWeight: "500",
-          fontFamily: "Poppins"
+          fontFamily: "Poppins",
+          color: "#5c5c5cfb"
         }
       },
       grid: {
         enabled: false
       },
+      tickAmount: 10
     },
     legend: {
       align: "left",
+      itemStyle: {
+        fontSize: "10px",
+        fontWeight: "500",
+        fontFamily: "Poppins"
+      }
     },
     credits: {
       enabled: false
     },
     series: Object.entries(this.diskUsageSeriesName)
+      .filter(([key, _]) => key !== "timeStamp")
+      .map(([key, value]) => ({
+        type: "area",
+        name: value,
+        stacking: "normal",
+        marker: { enabled: false }
+      })),
+    tooltip: {
+      shared: true
+    }
+  };
+
+  public networkUsageOption: Highcharts.Options = {
+    chart: {
+      type: "line",
+      height: "380px"
+    },
+    title: {
+      text: "Network traffic",
+      align: "left",
+      style: {
+        fontSize: "12px",
+        fontWeight: "700",
+        fontFamily: "Poppins"
+      }
+    },
+    xAxis: {
+      type: "datetime",
+      title: {
+        text: ""
+      },
+      labels: {
+        style: {
+          fontSize: "10px",
+          fontFamily: "Poppins",
+          color: "#5c5c5cfb"
+        }
+      },
+      crosshair: true
+    },
+    yAxis: {
+      title: {
+        text: ""
+      },
+      labels: {
+        formatter: e => {
+          const val = typeof e.value === "string" ? Number(e.value) : e.value;
+          return (val / 1048576).toFixed(1) + 'MB';
+        },
+        distance: 0.5,
+        align: "left",
+        y: -1,
+        style: {
+          fontSize: "10px",
+          fontWeight: "500",
+          fontFamily: "Poppins",
+          color: "#5c5c5cfb"
+        }
+      },
+      grid: {
+        enabled: false
+      },
+      tickAmount: 10
+    },
+    legend: {
+      align: "left",
+      itemStyle: {
+        fontSize: "10px",
+        fontWeight: "500",
+        fontFamily: "Poppins"
+      }
+    },
+    credits: {
+      enabled: false
+    },
+    series: Object.entries(this.networkUsageSeriesName)
       .filter(([key, _]) => key !== "timeStamp")
       .map(([key, value]) => ({
         type: "area",
@@ -206,9 +318,16 @@ export class HomeComponent implements OnInit, OnDestroy {
       timeStamp: d.timeStamp
     }));
 
+    const networkUsageData: NetworkUsage[] = this.systemUsage().map(d => ({
+      transmit: d.networkBytesSent,
+      received: d.networkBytesReceived,
+      timeStamp: d.timeStamp
+    }));
+
+
     this.systemMetricOptions = Object.entries(this.chartTitles)
-      .filter(([key, value]) => key !== "timeStamp")
-      .map(([key, value]) => ({
+      .filter(([key, _]) => key !== "timeStamp")
+      .map(([key, _]) => ({
         series: [{
           type: "line",
           marker: {
@@ -229,6 +348,17 @@ export class HomeComponent implements OnInit, OnDestroy {
         }))
     };
 
+    this.networkUsageOption = {
+      series: Object.entries(this.networkUsageSeriesName)
+        .filter(([key, _]) => key !== "timeStamp")
+        .map(([key, value]) => ({
+          name: value,
+          type: "area",
+          data: networkUsageData.map(s => ({ y: s[key as keyof NetworkUsage] as number, x: s.timeStamp })),
+          stacking: "normal"
+        }))
+    };
+
   }, { manualCleanup: true });
 
 
@@ -238,6 +368,7 @@ export class HomeComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.systemUsage.set([]);
+    this.systemDetails.set({});
     this.signalRService.destroyConnection();
     this.updateChart.destroy();
   }
