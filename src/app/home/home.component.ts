@@ -6,6 +6,7 @@ import { SidebarComponent } from "../core/UI/sidebar/sidebar.component";
 import { CommonModule } from '@angular/common';
 import { ISystemDetailDto } from '../core/models/model';
 import { DataConversionPipe } from '../core/pipes/data-conversion.pipe';
+import { HeaderComponent } from "../core/UI/header/header.component";
 
 type SystemMetric = {
   cpuUsagePercentage: number;
@@ -28,7 +29,7 @@ type NetworkUsage = {
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [HighchartsChartModule, SidebarComponent, CommonModule, DataConversionPipe],
+  imports: [HighchartsChartModule, SidebarComponent, CommonModule, DataConversionPipe, HeaderComponent],
   templateUrl: './home.component.html',
   styleUrl: './home.component.css'
 })

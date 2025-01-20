@@ -1,0 +1,9 @@
+<details #dropdownRef class="dropdown dropdown-left w-full" (document:click)="handleClickOutside($event)">
+    <summary class="btn-xs sm:btn md:btn-sm m-1 border border-solid border-primary w-full min-w-20">{{title}}</summary>
+    <ul class="sm:menu menu-xs dropdown-content bg-base-100 rounded-box z-[1] w-52 p-2 shadow">
+        <li (click)="closeDropdown('Live'); clickHandler()"><a>Live</a></li>
+        <li (click)="closeDropdown('30 Minutes'); clickHandler()"><a>30 Minutes</a></li>
+        <li (click)="closeDropdown('40 Minutes'); clickHandler()"><a>40 Minutes</a></li>
+        <li (click)="closeDropdown('1 Hour'); clickHandler()"><a>1 Hour</a></li>
+    </ul>
+</details>
