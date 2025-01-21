@@ -2,7 +2,7 @@ import { Injectable, signal } from '@angular/core';
 import { HttpTransportType, HubConnection, HubConnectionBuilder, HubConnectionState, LogLevel } from "@microsoft/signalr";
 import { environment } from '../../../environments/environment';
 import { ISystemDetailDto, ISystemUsageDto } from '../models/model';
-import { FailedToNegotiateWithServerError } from '@microsoft/signalr/dist/esm/Errors';
+import { FailedToNegotiateWithServerError, FailedToStartTransportError } from '@microsoft/signalr/dist/esm/Errors';
 
 @Injectable({
   providedIn: 'root'
@@ -10,7 +10,11 @@ import { FailedToNegotiateWithServerError } from '@microsoft/signalr/dist/esm/Er
 export class SignalrService {
   private readonly hubConnection: HubConnection | null = new HubConnectionBuilder()
     .withUrl(environment.apiEndpoint + '/system-usage', {
-      transport: HttpTransportType.WebSockets
+      transport: HttpTransportType.WebSockets,
+      accessTokenFactory: () => {
+        console.log(localStorage.getItem('access-token') || '');
+        return localStorage.getItem('access-token') || ''
+      }
     })
     .configureLogging(environment.production ? LogLevel.Information : LogLevel.Debug)
     .build();
@@ -59,6 +63,12 @@ export class SignalrService {
         }).catch(error => {
           if (error instanceof FailedToNegotiateWithServerError) {
             this.errorMessage.set(error.message);
+            console.log("Error message : ", error.message);
+          }
+
+          if (error instanceof FailedToStartTransportError) {
+            console.log("Error message : ", error.message);
+            console.log("Error type : ", error.errorType);
           }
         });
     }

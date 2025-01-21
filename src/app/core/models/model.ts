@@ -16,3 +16,9 @@ export interface ISystemDetailDto {
     totalMemoryKB: number;
     freeMemoryKB: number;
 }
+
+export interface IToken {
+    accessToken: string;
+    refreshToken: string;
+    expiresIn: string;
+}

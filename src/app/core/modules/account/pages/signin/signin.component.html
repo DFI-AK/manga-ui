@@ -1,0 +1,11 @@
+<form [formGroup]="signinForm" (ngSubmit)="submitSignin()">
+    <label class="input input-sm flex items-center gap-2 mb-3">
+        <input formControlName="email" type="email" name="email" class="grow">
+    </label>
+
+    <label class="input input-sm flex items-center gap-2 mb-3">
+        <input formControlName="password" type="password" name="password" class="grow">
+    </label>
+
+    <button type="submit" class="btn btn-sm btn-primary">Login</button>
+</form>
