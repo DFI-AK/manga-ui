@@ -20,5 +20,5 @@ export interface ISystemDetailDto {
 export interface IToken {
     accessToken: string;
     refreshToken: string;
-    expiresIn: string;
+    expiresIn: number;
 }

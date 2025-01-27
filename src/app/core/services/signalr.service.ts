@@ -1,8 +1,10 @@
-import { Injectable, signal } from '@angular/core';
+import { inject, Injectable, signal } from '@angular/core';
 import { HttpTransportType, HubConnection, HubConnectionBuilder, HubConnectionState, LogLevel } from "@microsoft/signalr";
 import { environment } from '../../../environments/environment';
-import { ISystemDetailDto, ISystemUsageDto } from '../models/model';
+import { ISystemDetailDto, ISystemUsageDto, IToken } from '../models/model';
 import { FailedToNegotiateWithServerError, FailedToStartTransportError } from '@microsoft/signalr/dist/esm/Errors';
+import { LOCAL_STORAGE } from '../constants/localstorage_contant';
+import { Router } from '@angular/router';
 
 @Injectable({
   providedIn: 'root'
@@ -12,12 +14,15 @@ export class SignalrService {
     .withUrl(environment.apiEndpoint + '/system-usage', {
       transport: HttpTransportType.WebSockets,
       accessTokenFactory: () => {
-        console.log(localStorage.getItem('access-token') || '');
-        return localStorage.getItem('access-token') || ''
+        const tokenstore = localStorage.getItem(LOCAL_STORAGE.ACCESS_TOKEN);
+        if (!tokenstore) return '';
+        const token = JSON.parse(tokenstore) as IToken;
+        return token.accessToken;
       }
     })
     .configureLogging(environment.production ? LogLevel.Information : LogLevel.Debug)
     .build();
+  private router = inject(Router);
 
   public systemUsage = signal<Array<ISystemUsageDto>>([]);
   public liveDataEnabled = signal<boolean>(false);
@@ -65,11 +70,7 @@ export class SignalrService {
             this.errorMessage.set(error.message);
             console.log("Error message : ", error.message);
           }
-
-          if (error instanceof FailedToStartTransportError) {
-            console.log("Error message : ", error.message);
-            console.log("Error type : ", error.errorType);
-          }
+          this.router.navigate(['/signin'], { queryParams: { ReturnURL: window.location.pathname } });
         });
     }
   }
